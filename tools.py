@@ -1,7 +1,7 @@
 """Custom LangChain tools for betting analysis."""
 
 from typing import Optional
-from langchain.tools import BaseTool
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
 

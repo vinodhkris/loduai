@@ -91,11 +91,11 @@ print(f"Expected Value: {result.get('expected_value', 0):.1%}")
 
 ```bash
 # Basic usage
-python main.py --team1 "Team A" --team2 "Team B" --odds1 2.5 --odds2 1.8 --draw 3.2
+python main.py --team1 "Chicago Bears" --team2 "SF 49ers" --odds1 2.5 --odds2 1.8 --draw 3.2
 
 # With additional data
 python main.py \
-  --team1 "Manchester United" \
+  --team1 "Chicago Bears" \
   --team2 "Liverpool" \
   --odds1 2.5 \
   --odds2 1.8 \

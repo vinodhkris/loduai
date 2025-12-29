@@ -4,7 +4,8 @@ import os
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import initialize_agent, AgentType
+from langchain.agents import create_react_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.memory import ConversationBufferMemory
 import json
 
@@ -47,11 +48,35 @@ class BettingAgent:
             return_messages=True
         )
         
-        # Create agent - use CHAT_ZERO_SHOT_REACT_DESCRIPTION for better compatibility
-        self.agent = initialize_agent(
+        # Create prompt template for the agent
+        # Using a standard prompt format for react agents
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are a helpful assistant that analyzes betting opportunities.
+You have access to tools that can analyze team strength and odds value.
+Use these tools to provide comprehensive betting recommendations.
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question"""),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ])
+        
+        # Create agent using the modern API
+        agent = create_react_agent(self.llm, self.tools, prompt)
+        
+        # Create agent executor
+        self.agent = AgentExecutor(
+            agent=agent,
             tools=self.tools,
-            llm=self.llm,
-            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             memory=self.memory,
             handle_parsing_errors=True,
@@ -113,7 +138,15 @@ class BettingAgent:
         
         try:
             # Use the agent to analyze
-            response = self.agent.run(prompt)
+            response = self.agent.invoke({"input": prompt})
+            
+            # Extract the output from the response
+            if isinstance(response, dict) and "output" in response:
+                response = response["output"]
+            elif isinstance(response, str):
+                pass  # Already a string
+            else:
+                response = str(response)
             
             # Parse and structure the response
             result = self._parse_response(
