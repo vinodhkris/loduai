@@ -1,0 +1,20 @@
+[
+  {
+    "error": "Error calling model 'gemini-pro' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}",
+    "team1": "Manchester United",
+    "team2": "Liverpool",
+    "recommendation": "Unable to complete analysis due to error",
+    "sport": "soccer",
+    "status": "LIVE",
+    "commence_time": "2025-12-29T02:42:51.129411+00:00"
+  },
+  {
+    "error": "Error calling model 'gemini-pro' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}",
+    "team1": "Lakers",
+    "team2": "Warriors",
+    "recommendation": "Unable to complete analysis due to error",
+    "sport": "basketball",
+    "status": "LIVE",
+    "commence_time": "2025-12-29T02:42:51.129946+00:00"
+  }
+]
