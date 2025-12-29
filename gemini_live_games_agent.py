@@ -85,11 +85,18 @@ Provide comprehensive, detailed analysis with clear recommendations.""")
         """
         current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S %Z")
         
-        prompt = f"""You are a sports data expert with access to real-time game information. You have knowledge of current NBA and NFL schedules, live scores, and betting odds.
+        prompt = f"""You are an nfl enthusiast who loves predicting games. 
+        You want to know if the live odds are lopsided at any point in the game ie 
+        if for a game the favorite is suddenly down and the odds reflect that but there is a chance to come back.
 
-TASK: Find ALL games that are currently LIVE (in progress) right now. 
 
-Current date and time: {current_date}
+For this we need to do some steps
+
+
+step1 : search for "nfl games now" and return the games
+step 2 : search for live odds for each nfl game.
+step 3 : Get the odds for each nfl game at start of game,
+step 4 : return the table
 """
 
         try:
@@ -217,7 +224,7 @@ Current date and time: {current_date}
         print("🏀🏈 GEMINI LIVE GAMES AGENT - NBA & NFL Analysis")
         print("="*80)
         print(f"\n⏰ Current Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print("\n🔍 Fetching live games from Gemini...")
+        print("\n🔍 Fetching live games from Google...")
         print("   (This may take a moment as Gemini gathers real-time game data)\n")
         
         # Fetch live games using Gemini
