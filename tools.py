@@ -21,8 +21,8 @@ class TeamStrengthInput(BaseModel):
 class TeamStrengthTool(BaseTool):
     """Tool to analyze team strength based on various metrics."""
     
-    name = "analyze_team_strength"
-    description = """Analyzes and compares the strength of two teams based on:
+    name: str = "analyze_team_strength"
+    description: str = """Analyzes and compares the strength of two teams based on:
     - Recent form (last 5 games)
     - Overall season record
     - Head-to-head history
@@ -31,7 +31,7 @@ class TeamStrengthTool(BaseTool):
     
     Returns a dictionary with strength scores and analysis."""
     
-    args_schema = TeamStrengthInput
+    args_schema: type = TeamStrengthInput
     
     def _run(
         self,
@@ -114,12 +114,12 @@ class OddsAnalysisInput(BaseModel):
 class OddsAnalysisTool(BaseTool):
     """Tool to analyze odds and calculate expected value."""
     
-    name = "analyze_odds_value"
-    description = """Analyzes betting odds and calculates expected value based on team strength.
+    name: str = "analyze_odds_value"
+    description: str = """Analyzes betting odds and calculates expected value based on team strength.
     Converts decimal odds to implied probabilities and compares with actual probabilities.
     Returns value bet recommendations."""
     
-    args_schema = OddsAnalysisInput
+    args_schema: type = OddsAnalysisInput
     
     def _run(
         self,

@@ -4,9 +4,8 @@ import os
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.memory import ConversationBufferMemory
+from langchain.agents import create_agent
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import json
 
 from tools import get_all_tools
@@ -42,46 +41,25 @@ class BettingAgent:
         # Get tools
         self.tools = get_all_tools()
         
-        # Initialize memory for conversation context
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True
-        )
+        # Store chat history manually (simpler approach for new API)
+        self.chat_history = []
         
-        # Create prompt template for the agent
-        # Using a standard prompt format for react agents
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a helpful assistant that analyzes betting opportunities.
+        # Create system prompt for the agent
+        system_prompt = SystemMessage(content="""You are a helpful assistant that analyzes betting opportunities.
 You have access to tools that can analyze team strength and odds value.
 Use these tools to provide comprehensive betting recommendations.
 
-Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question"""),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
-        ])
+When analyzing a match:
+1. First use the analyze_team_strength tool to evaluate team strengths
+2. Then use the analyze_odds_value tool to compare odds with probabilities
+3. Provide a clear recommendation with reasoning""")
         
-        # Create agent using the modern API
-        agent = create_react_agent(self.llm, self.tools, prompt)
-        
-        # Create agent executor
-        self.agent = AgentExecutor(
-            agent=agent,
+        # Create agent using the modern LangChain 1.2.0 API
+        self.agent = create_agent(
+            model=self.llm,
             tools=self.tools,
-            verbose=True,
-            memory=self.memory,
-            handle_parsing_errors=True,
-            max_iterations=5,
-            max_execution_time=60,
+            system_prompt=system_prompt,
+            debug=True,
         )
     
     def analyze_match(
@@ -138,15 +116,36 @@ Final Answer: the final answer to the original input question"""),
         
         try:
             # Use the agent to analyze
-            response = self.agent.invoke({"input": prompt})
+            # The new create_agent API returns a state graph that expects messages
+            
+            # Invoke the agent with messages (include chat history)
+            result_dict = self.agent.invoke({
+                "messages": self.chat_history + [HumanMessage(content=prompt)]
+            })
             
             # Extract the output from the response
-            if isinstance(response, dict) and "output" in response:
-                response = response["output"]
-            elif isinstance(response, str):
-                pass  # Already a string
+            # The new API returns messages in the state
+            response = ""
+            if isinstance(result_dict, dict):
+                if "messages" in result_dict:
+                    # Get the last AI message
+                    messages = result_dict["messages"]
+                    ai_messages = [m for m in messages if hasattr(m, 'content') and m.content]
+                    if ai_messages:
+                        response = ai_messages[-1].content
+                    else:
+                        response = str(result_dict)
+                    # Update chat history with all messages
+                    self.chat_history = messages
+                elif "output" in result_dict:
+                    response = result_dict["output"]
+                    # Update chat history
+                    self.chat_history.append(HumanMessage(content=prompt))
+                    self.chat_history.append(AIMessage(content=response))
+                else:
+                    response = str(result_dict)
             else:
-                response = str(response)
+                response = str(result_dict)
             
             # Parse and structure the response
             result = self._parse_response(
@@ -294,5 +293,5 @@ Format your response as a structured analysis."""
     
     def clear_memory(self):
         """Clear the conversation memory."""
-        self.memory.clear()
+        self.chat_history = []
 
